@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Solar System AR - Phone Fixed</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(45deg, #000428, #004e92);
+            color: white;
+            font-family: Arial;
+            text-align: center;
+        }
+        #permission-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        .btn {
+            background: #00ffff;
+            color: black;
+            padding: 15px 30px;
+            margin: 10px;
+            border: none;
+            border-radius: 25px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Permission Screen -->
+    <div id="permission-screen">
+        <h1>🌌 SOLAR SYSTEM AR</h1>
+        <p>Camera access required for AR experience</p>
+        <button class="btn" onclick="requestCameraPermission()">
+            📷 ALLOW CAMERA ACCESS
+        </button>
+        <p style="margin-top: 20px; font-size: 14px; opacity: 0.8;">
+            You'll be asked to allow camera permissions next
+        </p>
+    </div>
+
+    <!-- AR Scene (hidden until permission granted) -->
+    <div id="ar-scene" class="hidden">
+        <a-scene 
+            embedded 
+            arjs="sourceType: webcam; debugUIEnabled: true;"
+            vr-mode-ui="enabled: false">
+            
+            <a-marker preset="hiro">
+                <a-sphere position="0 0.5 0" radius="0.3" color="#6b93d6">
+                    <a-animation attribute="rotation" dur="10000" to="0 360 0" repeat="indefinite"></a-animation>
+                </a-sphere>
+                <a-text value="EARTH" position="0 1 0" align="center" color="white"></a-text>
+            </a-marker>
+            
+            <a-entity camera></a-entity>
+        </a-scene>
+        
+        <div style="position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 10px;">
+            <p>✅ AR Active</p>
+            <p>Point camera at Hiro marker</p>
+        </div>
+    </div>
+
+    <script>
+        function requestCameraPermission() {
+            // First, explicitly request camera permission
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function(stream) {
+                        console.log("Camera permission granted!");
+                        
+                        // Stop the stream (A-Frame will start its own)
+                        stream.getTracks().forEach(track => track.stop());
+                        
+                        // Hide permission screen, show AR
+                        document.getElementById('permission-screen').classList.add('hidden');
+                        document.getElementById('ar-scene').classList.remove('hidden');
+                    })
+                    .catch(function(error) {
+                        alert("Camera permission denied. Please allow camera access to use AR features.");
+                        console.error("Camera error:", error);
+                    });
+            } else {
+                alert("Your device doesn't support camera access.");
+            }
+        }
+
+        // Try to auto-request on load (may not work on all phones)
+        window.addEventListener('load', function() {
+            // Small delay to let page load
+            setTimeout(requestCameraPermission, 1000);
+        });
+    </script>
+</body>
+</html>
